@@ -25,3 +25,7 @@ Temporary Items
 # Ignore the 2,400 + markdown files
 dist/*.md
 dist/
+
+# NPM Stuffs
+node_modules/
+package-lock.json
