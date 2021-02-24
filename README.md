@@ -6,7 +6,7 @@ Hack a massive SharePoint 2013 list of articles into individual Markdown files w
 
 This project was created to get a SharePoint list, of over 2,400 articles, out of the old CMS. To get the RSS feed as JSON, I used an online rss-to-json converter (<https://rsstojson.com>.)
 
-The JavaScript in `index.js` consumes a JavaScript Object and outputs markdown files. The articles are represented as an array of objects where each object is an article—each object has keys and values that makeup the article content.
+The JavaScript in `index.js` consumes a JavaScript object and outputs markdown files. The articles are represented as an array of objects where each object is an article—each object has keys and values that makeup the article content.
 
 It uses a simple for-loop to iterate over each article, generate the YAML front-matter and content, and then use the Nodejs built-in filesystem (`const fs = require('fs')`) to write/name the file:
 
