@@ -1,8 +1,19 @@
 const fs = require('fs');
-const colors = require('colors');
-const json = require('./feed.js'); // This is our exported JavaScript Object containing the RSS info converted to JSON
-const dataArr = json.rss.channel[0].item; // item is an Array of Objects.
-// Each object represents an article with keys & values holding the article content, date, title, etc..
+const colors = require('colors/safe');
+let Parser = require('rss-parser');
+let parser = new Parser({
+  timeout: 100000
+});
+const config = { // Configuration object defines the created file's path, name, and extension
+  input: {
+    url: 'http://www.kcc.edu/FacultyStaff/update/_layouts/listfeed.aspx?List=%7BC267947C%2D5D3A%2D41DF%2DBF8C%2D8C8142ECE9FC%7D&Source=http%3A%2F%2Fauthoring%2Ekcc%2Eedu%2FFacultyStaff%2Fupdate%2FLists%2FEvents%2FAllItems%2Easpx'
+  },
+  output: {
+    path: './dist/test/', // Make sure the path already exists before running
+    filenameProperty: 'title', // which JSON property to use for the generating the name of the file
+    extension: '.md'
+  }
+}
 
 colors.setTheme({
   info: 'brightCyan',
@@ -10,37 +21,30 @@ colors.setTheme({
   success: 'green',
   debug: 'cyan',
   error: 'red'
-})
+});
 
-function createArr(item) {
-  let arr = ['---'];
+(async () => {
+  let feed = await parser.parseURL(config.input.url);
+  console.log(`This feed has ${colors.info(feed.items.length)} items!`);
 
-  for (let prop in item) {
-    if (item.hasOwnProperty(prop)) {
-      prop == 'description' ? arr.push('\n---', `\n${item[prop]}`)
-      : prop == 'enclosure' || prop == 'guid' ? null
-      : arr.push(`\n${prop}: ${item[prop]}`);
-    }
-  } // The properties are not in the correct order to be a valid markdown file...
-  // Right now, there are front-matter keys/values outside of the YAML bounds
-  const content = arr.splice(3,2); // Take the closing YAML "---" and "description" (article's content), and...
-  arr.push(content[0], content[1]); // ...place them at the end of the array
-  return arr;
-}
-
-for (let i = 0, len = dataArr.length; i < len; i++) {
-  const config = { // Configuration object defines the created file's path, name, and extension
-    path: './dist/events/', // Make sure the path already exists before running
-    filenameProp: 'title', // which JSON property to use for the generating the name of the file
-    extension: '.md'
-  }
-  const item = dataArr[i];
-  const fileString = createArr(item).join('');
-  const filename = item[config.filenameProp].toString().toLowerCase().trim().replace(/\W/g, '')
-  const file = config.path + filename + config.extension ;
-
-  fs.writeFile(file, fileString, (err) => {
-    if (err) throw err;
-    console.log(`The file ${colors.info(filename + '.md')} has been saved to ${colors.info(config.path)}!`);
+  feed.items.forEach((item, i) => {
+    //console.log(item.title + ':' + item.creator);
+    let markdownFileArray = [
+      "---",
+      `\ntitle: ${item.title}`,
+      `\nlink: ${item.link}`,
+      `\npubDate: ${item.pubDate}`,
+      `\ncreator: ${item.creator}`,
+      "\n---",
+      `\ncontent: ${item.content}`
+    ];
+    const fileContentString = markdownFileArray.join('');
+    const filename = item[config.output.filenameProperty].replace(/\W/g, '');
+    const file = config.output.path + filename + config.output.extension;
+    
+    fs.writeFile(file, fileContentString, (err) => {
+        if (err) throw err;
+        console.log(`The file ${colors.info(filename + '.md')} has been saved to ${colors.info(config.output.path)}! - File #: ${i}`);
+      });
   });
-}
+})();
