@@ -34,7 +34,11 @@ fs.writeFile(filename, fileString, (err) => {
 
 ## Installation
 
-Nope. Just clone it—no installation required.
+```bash
+npm i
+# OR
+npm install
+```
 
 ## Development
 
